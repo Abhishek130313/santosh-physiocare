@@ -1,56 +1,33 @@
-## Physiotherapy Backend API (Node.js + Express + MongoDB)
+## Digital Health Record Management System (Kerala Migrant Workers) – Prototype
 
-Production-ready backend for Dr. Santosh Bilwal. Provides REST APIs for appointments, reviews, services, and contact forms with admin authentication, validation, logging, email notifications, and Swagger docs.
+Professional, secure, offline-capable SPA + API + DB + storage with analytics and audit.
 
-### Tech Stack
-- Node.js, Express
-- MongoDB with Mongoose
-- JWT auth
-- Validation via Joi
-- Logging via Winston + Morgan
-- Security via Helmet, Rate Limiting, Mongo Sanitize, XSS Clean
-- Swagger for API docs
+### Quick start
 
-### Getting Started
-1. Copy `.env.example` to `.env` and configure values (MongoDB, JWT, SMTP, admin credentials)
-2. Install dependencies:
 ```bash
-npm install
-```
-3. Run in development:
-```bash
-npm run dev
-```
-4. Open docs: `http://localhost:4000/api/docs`
-
-### Run with Docker
-```bash
+git clone <repo>
+cd <repo>
 cp .env.example .env
-docker compose up --build
+bash scripts/gen_certs.sh  # optional TLS
+docker-compose up --build -d
+./seed/seed.sh
+# Open
+# Frontend: http://localhost:3000
+# Backend Swagger: http://localhost:4000/docs
 ```
-API at `http://localhost:4000`, Swagger at `http://localhost:4000/api/docs`.
 
-### Scripts
-- `npm run dev`: Start with nodemon
-- `npm start`: Start server
+Run E2E demo:
 
-### Environment Variables
-See `.env.example` for all variables (Mongo URI, JWT, Rate limiting, SMTP, Admin bootstrap).
+```bash
+./tests/run_e2e.sh
+```
 
-### API Overview
-- Auth: `POST /api/auth/login`
-- Appointments: `POST /api/appointments` (public), `GET /api/appointments` (admin), `PATCH /api/appointments/:id/status` (admin)
-- Reviews: `POST /api/reviews` (public), `GET /api/reviews/public` (public), `GET /api/reviews` (admin), `PATCH /api/reviews/:id/approve` (admin), `DELETE /api/reviews/:id` (admin)
-- Services: `GET /api/services/public` (public), `GET/POST/PUT/DELETE /api/services` (admin)
-- Contacts: `POST /api/contacts` (public), `GET /api/contacts` (admin)
-- Admin Dashboard: `GET /api/admin/dashboard` (admin)
+### Services
+- **Frontend**: React + Vite + Tailwind (TypeScript), PWA, i18n (en/hi/ml), IndexedDB/PouchDB
+- **Backend**: Node.js + Express (TypeScript), Prisma/Postgres, MinIO, JWT + OAuth2 mock, Swagger
+- **Database**: PostgreSQL + Prisma migrations and seed (~2k synthetic migrant records)
+- **Storage**: MinIO (S3 compatible) with AES-GCM encryption-at-rest
+- **Audit**: Append-only ledger with hash chain and verification script
+- **Analytics**: Simple spike detection generating alerts for dashboard
 
-### Deployment
-- Works on Render/Heroku: set environment variables, define start command `npm start` and build step `npm install`
-- For Vercel Serverless functions, consider Next.js API routes instead of this Express server
-
-### Notes
-- Admin user is auto-created on first start if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are provided.
-- Emails are best-effort and failures do not block requests. Use Mailtrap or a real SMTP provider.
-
-# santosh-physiocare
+See `docs/` for FHIR profile mapping, runbook, and admin manual.
