@@ -1,0 +1,117 @@
+{
+  "common": {
+    "loading": "लोड हो रहा है...",
+    "save": "सेव करें",
+    "cancel": "रद्द करें",
+    "delete": "डिलीट करें",
+    "edit": "एडिट करें",
+    "view": "देखें",
+    "search": "खोजें",
+    "filter": "फिल्टर",
+    "clear": "क्लियर",
+    "submit": "सबमिट करें",
+    "close": "बंद करें",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "ok": "ठीक",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "warning": "चेतावनी",
+    "info": "जानकारी",
+    "required": "आवश्यक",
+    "optional": "वैकल्पिक",
+    "home": "होम",
+    "dashboard": "डैशबोर्ड",
+    "profile": "प्रोफाइल",
+    "settings": "सेटिंग्स",
+    "logout": "लॉगआउट",
+    "login": "लॉगिन"
+  },
+  "app": {
+    "title": "केरल डिजिटल स्वास्थ्य सिस्टम",
+    "subtitle": "प्रवासी कामगार स्वास्थ्य रिकॉर्ड",
+    "description": "केरल में प्रवासी कामगारों के लिए व्यापक स्वास्थ्य रिकॉर्ड प्रबंधन सिस्टम",
+    "offline": "आप वर्तमान में ऑफलाइन हैं",
+    "online": "आप वापस ऑनलाइन हैं"
+  },
+  "auth": {
+    "loginTitle": "साइन इन",
+    "loginSubtitle": "केरल हेल्थ सिस्टम में प्रवेश करें",
+    "email": "ईमेल पता",
+    "password": "पासवर्ड",
+    "signIn": "साइन इन",
+    "signOut": "साइन आउट",
+    "invalidCredentials": "गलत ईमेल या पासवर्ड"
+  },
+  "patient": {
+    "title": "रोगी",
+    "patients": "रोगी",
+    "firstName": "पहला नाम",
+    "lastName": "अंतिम नाम",
+    "gender": "लिंग",
+    "male": "पुरुष",
+    "female": "महिला",
+    "other": "अन्य",
+    "birthDate": "जन्म तिथि",
+    "age": "उम्र",
+    "phone": "फोन नंबर",
+    "email": "ईमेल पता",
+    "address": "पता",
+    "district": "जिला",
+    "state": "राज्य",
+    "abhaId": "ABHA आईडी",
+    "enrollPatient": "रोगी को नामांकित करें",
+    "searchPatients": "रोगियों को खोजें"
+  },
+  "encounter": {
+    "title": "मुलाकात",
+    "encounters": "मुलाकातें",
+    "chiefComplaint": "मुख्य शिकायत",
+    "diagnosis": "निदान",
+    "treatment": "उपचार",
+    "vitalSigns": "जीवन संकेत",
+    "temperature": "तापमान",
+    "bloodPressure": "रक्तचाप",
+    "heartRate": "हृदय गति"
+  },
+  "qr": {
+    "title": "QR कोड",
+    "scanQR": "QR कोड स्कैन करें",
+    "generateQR": "QR कोड जेनरेट करें"
+  },
+  "smartCard": {
+    "title": "स्वास्थ्य कार्ड",
+    "generateCard": "स्वास्थ्य कार्ड जेनरेट करें",
+    "downloadCard": "कार्ड डाउनलोड करें",
+    "printCard": "कार्ड प्रिंट करें"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "overview": "अवलोकन",
+    "statistics": "आंकड़े",
+    "totalPatients": "कुल रोगी",
+    "newPatients": "नए रोगी"
+  },
+  "kiosk": {
+    "title": "हेल्थ कियोस्क",
+    "welcome": "हेल्थ कियोस्क में आपका स्वागत है",
+    "selectLanguage": "भाषा चुनें",
+    "enrollNew": "नए रोगी को नामांकित करें",
+    "scanCard": "स्वास्थ्य कार्ड स्कैन करें"
+  },
+  "languages": {
+    "en": "English",
+    "hi": "हिंदी",
+    "ml": "മലയാളം",
+    "selectLanguage": "भाषा चुनें"
+  },
+  "validation": {
+    "required": "यह फील्ड आवश्यक है",
+    "invalidEmail": "कृपया एक वैध ईमेल पता दर्ज करें",
+    "invalidPhone": "कृपया एक वैध फोन नंबर दर्ज करें"
+  },
+  "errors": {
+    "generic": "कुछ गलत हुआ। कृपया पुनः प्रयास करें।",
+    "network": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।"
+  }
+}

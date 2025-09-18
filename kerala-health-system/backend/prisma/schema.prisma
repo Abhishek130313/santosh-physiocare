@@ -1,0 +1,503 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// FHIR-compliant models for Kerala Health System
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  phone     String?  @unique
+  password  String
+  role      UserRole @default(CLINICIAN)
+  isActive  Boolean  @default(true)
+  
+  // Profile information
+  firstName String
+  lastName  String
+  
+  // Clinician specific
+  licenseNumber String?
+  facility      String?
+  department    String?
+  
+  // Audit fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lastLogin DateTime?
+  
+  // Relations
+  encounters    Encounter[]
+  auditLogs     AuditLog[]
+  patientAccess PatientAccess[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  CLINICIAN
+  KIOSK
+  PUBLIC_HEALTH
+  AUDITOR
+}
+
+// FHIR Patient Resource
+model Patient {
+  id String @id @default(cuid())
+  
+  // FHIR identifiers
+  abhaId      String? @unique // Ayushman Bharat Health Account ID
+  stateId     String? @unique // Kerala State Health ID
+  migrantId   String? @unique // Migrant Worker ID
+  
+  // Demographics
+  firstName   String
+  lastName    String
+  gender      Gender
+  birthDate   DateTime
+  phone       String?
+  email       String?
+  
+  // Address - Kerala specific
+  addressLine1 String?
+  addressLine2 String?
+  district     String?
+  taluk        String?
+  village      String?
+  pincode      String?
+  state        String? @default("Kerala")
+  country      String? @default("India")
+  
+  // Migrant worker specific
+  originState     String?
+  originDistrict  String?
+  workSite        String?
+  employerName    String?
+  employerContact String?
+  
+  // Language preferences
+  preferredLanguage String @default("ml") // ml, hi, en
+  
+  // Emergency contact
+  emergencyName    String?
+  emergencyPhone   String?
+  emergencyRelation String?
+  
+  // Health card
+  qrCode     String? @unique
+  cardIssued DateTime?
+  cardExpiry DateTime?
+  
+  // Audit fields
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
+  
+  // Relations
+  encounters    Encounter[]
+  consents      Consent[]
+  immunizations Immunization[]
+  attachments   Binary[]
+  auditLogs     AuditLog[]
+  patientAccess PatientAccess[]
+  
+  @@map("patients")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+// FHIR Encounter Resource
+model Encounter {
+  id String @id @default(cuid())
+  
+  // FHIR fields
+  status       EncounterStatus @default(IN_PROGRESS)
+  class        EncounterClass  @default(OUTPATIENT)
+  type         String?         // Visit type
+  priority     String?         // Routine, urgent, emergency
+  
+  // Clinical details
+  chiefComplaint String?
+  diagnosis      String?
+  treatment      String?
+  notes          String?
+  
+  // Location and provider
+  facility   String?
+  department String?
+  
+  // Timing
+  startTime DateTime @default(now())
+  endTime   DateTime?
+  
+  // Relations
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  clinicianId String?
+  clinician   User?   @relation(fields: [clinicianId], references: [id])
+  
+  observations  Observation[]
+  medications   MedicationRequest[]
+  attachments   Binary[]
+  
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("encounters")
+}
+
+enum EncounterStatus {
+  PLANNED
+  ARRIVED
+  IN_PROGRESS
+  FINISHED
+  CANCELLED
+}
+
+enum EncounterClass {
+  INPATIENT
+  OUTPATIENT
+  EMERGENCY
+  HOME_HEALTH
+  VIRTUAL
+}
+
+// FHIR Observation Resource
+model Observation {
+  id String @id @default(cuid())
+  
+  // FHIR fields
+  status       ObservationStatus @default(FINAL)
+  category     String?           // vital-signs, laboratory, etc.
+  code         String            // LOINC or SNOMED code
+  display      String            // Human readable name
+  
+  // Value (polymorphic)
+  valueString   String?
+  valueNumber   Float?
+  valueBoolean  Boolean?
+  valueDateTime DateTime?
+  unit          String?
+  
+  // Reference ranges
+  referenceRangeHigh Float?
+  referenceRangeLow  Float?
+  
+  // Clinical significance
+  interpretation String?
+  notes          String?
+  
+  // Timing
+  effectiveDateTime DateTime @default(now())
+  
+  // Relations
+  encounterId String
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("observations")
+}
+
+enum ObservationStatus {
+  REGISTERED
+  PRELIMINARY
+  FINAL
+  AMENDED
+  CORRECTED
+  CANCELLED
+  ENTERED_IN_ERROR
+}
+
+// FHIR Immunization Resource
+model Immunization {
+  id String @id @default(cuid())
+  
+  // FHIR fields
+  status          ImmunizationStatus @default(COMPLETED)
+  vaccineCode     String             // CVX code
+  vaccineName     String
+  manufacturer    String?
+  lotNumber       String?
+  expirationDate  DateTime?
+  
+  // Administration details
+  doseNumber      Int?
+  seriesDoses     Int?
+  site            String?             // injection site
+  route           String?             // intramuscular, oral, etc.
+  
+  // Timing
+  occurrenceDateTime DateTime @default(now())
+  
+  // Provider
+  performer       String?
+  facility        String?
+  
+  // Relations
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("immunizations")
+}
+
+enum ImmunizationStatus {
+  COMPLETED
+  ENTERED_IN_ERROR
+  NOT_DONE
+}
+
+// FHIR MedicationRequest Resource
+model MedicationRequest {
+  id String @id @default(cuid())
+  
+  // FHIR fields
+  status           MedicationStatus @default(ACTIVE)
+  intent           String           @default("order")
+  medicationName   String
+  dosageText       String?
+  frequency        String?
+  duration         String?
+  instructions     String?
+  
+  // Prescriber
+  prescriber       String?
+  
+  // Timing
+  authoredOn       DateTime @default(now())
+  
+  // Relations
+  encounterId String
+  encounter   Encounter @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("medication_requests")
+}
+
+enum MedicationStatus {
+  ACTIVE
+  ON_HOLD
+  CANCELLED
+  COMPLETED
+  ENTERED_IN_ERROR
+  STOPPED
+  DRAFT
+  UNKNOWN
+}
+
+// FHIR Binary Resource (for attachments)
+model Binary {
+  id String @id @default(cuid())
+  
+  // FHIR fields
+  contentType String            // MIME type
+  size        Int?
+  hash        String?           // SHA-256 hash
+  title       String?
+  
+  // Storage
+  storageKey  String            // MinIO object key
+  encrypted   Boolean @default(true)
+  
+  // Relations
+  patientId   String?
+  patient     Patient?   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  encounterId String?
+  encounter   Encounter? @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  
+  // Audit
+  uploadedBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("binaries")
+}
+
+// FHIR Consent Resource
+model Consent {
+  id String @id @default(cuid())
+  
+  // FHIR fields
+  status       ConsentStatus @default(ACTIVE)
+  scope        String        @default("patient-privacy")
+  category     String        @default("IDSCL") // Information disclosure
+  
+  // Consent details
+  dataSharing  Boolean @default(true)
+  analytics    Boolean @default(true)
+  research     Boolean @default(false)
+  marketing    Boolean @default(false)
+  
+  // Policy reference
+  policyRule   String?
+  
+  // Timing
+  dateTime     DateTime @default(now())
+  
+  // Relations
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("consents")
+}
+
+enum ConsentStatus {
+  DRAFT
+  PROPOSED
+  ACTIVE
+  REJECTED
+  INACTIVE
+  ENTERED_IN_ERROR
+}
+
+// Audit Log for immutable trail
+model AuditLog {
+  id String @id @default(cuid())
+  
+  // Event details
+  eventType    String            // CREATE, READ, UPDATE, DELETE, LOGIN, etc.
+  resourceType String?           // Patient, Encounter, etc.
+  resourceId   String?
+  
+  // Actor
+  userId       String?
+  user         User?    @relation(fields: [userId], references: [id])
+  
+  patientId    String?
+  patient      Patient? @relation(fields: [patientId], references: [id])
+  
+  // Event details
+  ipAddress    String?
+  userAgent    String?
+  facility     String?
+  
+  // Data integrity
+  dataHash     String?           // Hash of the data at time of event
+  previousHash String?           // Previous record hash for chain integrity
+  
+  // Timing
+  timestamp    DateTime @default(now())
+  
+  // Additional context
+  metadata     Json?
+  
+  @@map("audit_logs")
+}
+
+// Patient Access Control
+model PatientAccess {
+  id String @id @default(cuid())
+  
+  // Relations
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Access details
+  accessType  AccessType @default(READ)
+  grantedBy   String?
+  reason      String?
+  
+  // Timing
+  grantedAt   DateTime @default(now())
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  
+  @@unique([patientId, userId])
+  @@map("patient_access")
+}
+
+enum AccessType {
+  READ
+  WRITE
+  FULL
+}
+
+// Analytics and Alerts
+model Alert {
+  id String @id @default(cuid())
+  
+  // Alert details
+  type        AlertType
+  severity    AlertSeverity @default(MEDIUM)
+  title       String
+  description String
+  
+  // Geographic scope
+  district    String?
+  taluk       String?
+  facility    String?
+  
+  // Metrics
+  affectedCount Int?
+  threshold     Float?
+  actualValue   Float?
+  
+  // Status
+  status      AlertStatus @default(ACTIVE)
+  assignedTo  String?
+  resolvedBy  String?
+  resolvedAt  DateTime?
+  
+  // Timing
+  detectedAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("alerts")
+}
+
+enum AlertType {
+  DISEASE_OUTBREAK
+  VACCINATION_DUE
+  FOLLOW_UP_REQUIRED
+  SYSTEM_ANOMALY
+  DATA_QUALITY
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  ACTIVE
+  INVESTIGATING
+  RESOLVED
+  FALSE_POSITIVE
+}
