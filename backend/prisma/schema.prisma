@@ -1,0 +1,119 @@
+// Prisma schema for FHIR-like resources and audit ledger
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  audits    Audit[]
+}
+
+enum Role {
+  CLINICIAN
+  KIOSK
+  ADMIN
+  PUBLIC_HEALTH
+}
+
+model Patient {
+  id            String   @id @default(uuid())
+  abhaId        String?  @unique
+  firstName     String
+  lastName      String?
+  gender        String?
+  dob           DateTime?
+  phone         String?
+  addressLine   String?
+  district      String?
+  taluk         String?
+  language      String? // en/hi/ml
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  encounters    Encounter[]
+  immunizations Immunization[]
+  consents      Consent[]
+  attachments   Attachment[]
+  medications   MedicationRequest[]
+}
+
+model Consent {
+  id           String   @id @default(uuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id])
+  allowClinical Boolean  @default(true)
+  allowAnalytics Boolean  @default(true)
+  text         String
+  createdAt    DateTime @default(now())
+}
+
+model Encounter {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  datetime    DateTime @default(now())
+  type        String   // OPD/EMERGENCY/etc
+  notes       String?
+  observations Observation[]
+}
+
+model Observation {
+  id           String   @id @default(uuid())
+  encounterId  String
+  encounter    Encounter @relation(fields: [encounterId], references: [id])
+  code         String    // e.g., SNOMED/LOINC code or simple string
+  value        String
+  unit         String?
+  district     String?
+  taluk        String?
+  createdAt    DateTime  @default(now())
+}
+
+model Immunization {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  vaccine   String
+  date      DateTime @default(now())
+}
+
+model MedicationRequest {
+  id        String   @id @default(uuid())
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  medication String
+  dosage     String?
+  date       DateTime @default(now())
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  filename    String
+  mimeType    String
+  s3Key       String
+  sha256      String
+  createdAt   DateTime @default(now())
+}
+
+model Audit {
+  id         String   @id @default(uuid())
+  eventType  String
+  patientId  String?
+  userId     String?
+  hash       String
+  prevHash   String?
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+}

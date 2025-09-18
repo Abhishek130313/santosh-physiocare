@@ -1,7 +1,51 @@
+# Node
 node_modules/
-.env
+.npm/
+.pnpm-store/
+.yarn/
+**/dist/
+**/build/
+**/.next/
+**/.turbo/
+
+# Logs
 logs/
+*.log
 npm-debug.log*
+yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor
+.vscode/
+*.swp
 .DS_Store
+.idea/
+
+# Coverage
+coverage/
+
+# Prisma
+**/prisma/*.db
+
+# Frontend
+**/.cache/
+**/coverage/
+**/*.local
+
+# Generated
+**/swagger.json
+**/openapi.json
+**/public/assets/generated/
+
+# Docker
+*.pid
+
+# TLS
+certs/
 

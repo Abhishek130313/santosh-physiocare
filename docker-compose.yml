@@ -1,25 +1,80 @@
 version: '3.9'
 services:
-  mongo:
-    image: mongo:6
-    container_name: physio-mongo
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-  api:
-    build: .
-    container_name: physio-api
-    restart: unless-stopped
-    env_file:
-      - .env
+  postgres:
+    image: postgres:15
     environment:
-      - MONGO_URI=mongodb://mongo:27017/physio_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio:RELEASE.2024-06-13T22-53-53Z
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio:/data
+
+  create-minio-bucket:
+    image: minio/mc:RELEASE.2024-06-13T22-55-12Z
+    depends_on:
+      - minio
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+      mc mb -p local/${MINIO_BUCKET} || true &&
+      mc anonymous set download local/${MINIO_BUCKET}"
+
+  backend:
+    build: ./backend
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
     ports:
       - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - ./certs:/workspace/certs
+    command: sh -c "npm ci && npx prisma generate && npm run db:push && npm run seed:minio && npm run dev"
+
+  frontend:
+    build: ./frontend
+    env_file: .env
     depends_on:
-      - mongo
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
 volumes:
-  mongo_data:
+  pgdata:
+  minio:
 
