@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kerala-health
+  labels:
+    name: kerala-health
+    app.kubernetes.io/name: kerala-health-system
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/version: "1.0.0"
+    app.kubernetes.io/component: namespace
+    app.kubernetes.io/part-of: kerala-health-system
+    app.kubernetes.io/managed-by: kubectl
+  annotations:
+    description: "Kerala Digital Health Record Management System for Migrant Workers"
+    contact: "health@kerala.gov.in"
+    organization: "Government of Kerala - Health Department"
